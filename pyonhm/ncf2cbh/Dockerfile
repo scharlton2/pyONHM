@@ -1,0 +1,21 @@
+# # NHM ncf2cbh Image
+#
+# This image contains the ncf2cbh program.
+FROM nhmusgs/base
+
+LABEL maintainer="ashalper@usgs.gov"
+
+# ## ncf2cbh Installation Location
+#
+# The ncf2cbh program installs in `/usr/local/bin`.
+COPY --chown=nhm ncf2cbh /usr/local/bin
+RUN chmod 744 /usr/local/bin/ncf2cbh
+
+# ## ncf2cbh User Account
+#
+# The ncf2cbh user account is defined in the [base image
+# Dockerfile](https://code.chs.usgs.gov/wma/nhm/docker-images/-/blob/main/base/Dockerfile).
+USER $USER
+WORKDIR /home/$USER
+
+ENTRYPOINT ["/bin/bash", "-c", "/usr/local/bin/ncf2cbh"]

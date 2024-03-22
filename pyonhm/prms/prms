@@ -1,0 +1,46 @@
+#! /bin/bash
+#
+# U.S. Geological Survey
+#
+# File - prms
+#
+# Purpose - Docker entry-point for nhm-prms container.
+#
+# Authors - Richard McDonald, Andrew Halper, Steven Markstrom
+#
+# Check if OP_DIR is set and not empty
+if [ -z "$OP_DIR" ]; then
+  echo "Error: OP_DIR environment variable is not set."
+  exit 1
+else
+  echo "OP_DIR is set to '$OP_DIR'."
+fi
+
+# Check if FRCST_DIR is set and not empty
+if [ -z "$FRCST_DIR" ]; then
+  echo "Error: FRCST_DIR environment variable is not set."
+  exit 1
+else
+  echo "FRCST_DIR is set to '$FRCST_DIR'."
+fi
+
+# Check if necessary environment variables are set
+if [ -z "$PRMS_RUN_TYPE" ] || [ -z "$NHM_SOURCE_DIR" ] || [ -z "$PRMS_CONTROL_FILE" ]; then
+  echo "Error: Required environment variables (PRMS_RUN_TYPE, NHM_SOURCE_DIR, PRMS_CONTROL_FILE) are not set."
+  exit 1
+fi
+
+# PRMS needs to be run in a directory relative to its data files (in subdirectories)
+if [ "$PRMS_RUN_TYPE" = 0 ]; then
+  cd "$OP_DIR" || { echo "Failed to change directory to $OP_DIR"; exit 1; }
+else
+  cd "$FRCST_DIR" || { echo "Failed to change directory to $FRCST_DIR"; exit 1; }
+fi
+
+"$NHM_SOURCE_DIR/bin/prms" \
+  -set start_time "$PRMS_START_TIME" -set end_time "$PRMS_END_TIME" \
+  -set init_vars_from_file "$PRMS_INIT_VARS_FROM_FILE" \
+  -set var_init_file "$PRMS_VAR_INIT_FILE" \
+  -set save_vars_to_file "$PRMS_SAVE_VARS_TO_FILE" \
+  -set var_save_file "$PRMS_VAR_SAVE_FILE" \
+  -C "$PRMS_CONTROL_FILE"
