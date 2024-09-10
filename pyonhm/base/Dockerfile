@@ -55,8 +55,13 @@ RUN apt-get update --fix-missing && \
 	    make \
 	    procps \
 	    unzip \
-        vim
+        vim \
+        build-essential \
+        git
+
 RUN apt-get autoclean && apt-get purge
+# RUN ping -c 4 pypi.org 
+# RUN ping -c 4 files.pythonhosted.org
 
 # ## DOI SSL Intercept Root Certificate
 #
@@ -64,26 +69,29 @@ RUN apt-get autoclean && apt-get purge
 # certificate](https://github.com/usgs/best-practices/blob/master/ssl/WorkingWithinSSLIntercept.md)
 # is required within .usgs.gov to make secure connections outside the
 # subnet.
-RUN if wget http://sslhelp.doi.net/docs/DOIRootCA2.cer ; then \
-        mkdir -p /usr/local/share/ca-certificates ; \
-        mv DOIRootCA2.cer /usr/local/share/ca-certificates/DOIRootCA2.crt ; \
-        update-ca-certificates ; \
-    fi
+# RUN if wget http://sslhelp.doi.net/docs/DOIRootCA2.cer ; then \
+#         mkdir -p /usr/local/share/ca-certificates ; \
+#         mv DOIRootCA2.cer /usr/local/share/ca-certificates/DOIRootCA2.crt ; \
+#         update-ca-certificates ; \
+#     fi
+COPY DOIRootCA2.crt /usr/local/share/ca-certificates
+RUN update-ca-certificates
 
-RUN export SSL_CERT_FILE=/usr/local/share/ca-certificates/DOIRootCA2.crt
-RUN export CURL_CA_BUNDLE="${SSL_CERT_FILE}"
-RUN export PIP_CERT="${SSL_CERT_FILE}"
+# RUN export SSL_CERT_FILE=/usr/local/share/ca-certificates/DOIRootCA2.crt
+# RUN export CURL_CA_BUNDLE="${SSL_CERT_FILE}"
+# RUN export PIP_CERT="${SSL_CERT_FILE}"
 # Add the DOI SSL Intercept Root Certificate
 # RUN wget http://sslhelp.doi.net/docs/DOIRootCA2.cer -O /usr/local/share/ca-certificates/DOIRootCA2.crt && \
 #     update-ca-certificates
 
 # Set environment variables to use the custom certificate
-# ENV SSL_CERT_FILE=/usr/local/share/ca-certificates/DOIRootCA2.crt
-# ENV CURL_CA_BUNDLE=${SSL_CERT_FILE}
-# ENV PIP_CERT=${SSL_CERT_FILE}
-# ENV REQUESTS_CA_BUNDLE=${SSL_CERT_FILE}
-# ENV GIT_SSL_CAINFO=${SSL_CERT_FILE}
-# RUN mamba config --set ssl_verify /usr/local/share/ca-certificates/DOIRootCA2.crt
+# RUN export SSL_CERT_FILE=/usr/local/share/ca-certificates/DOIRootCA2.crt
+RUN export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+RUN export CURL_CA_BUNDLE="${SSL_CERT_FILE}"
+RUN export PIP_CERT="${SSL_CERT_FILE}"
+RUN export REQUESTS_CA_BUNDLE="${SSL_CERT_FILE}"
+RUN export GIT_SSL_CAINFO="${SSL_CERT_FILE}"
+RUN mamba config --set ssl_verify /usr/local/share/ca-certificates/DOIRootCA2.crt
 
 # ## Conda Installation
 #
